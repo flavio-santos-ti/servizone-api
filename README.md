@@ -61,11 +61,8 @@ ServiZone.sln
 - [Git](https://git-scm.com/)
 
 > Docker **não é necessário** no ambiente local. O banco de dados e o Redis rodam remotamente no servidor e são acessados via túnel SSH. Docker é utilizado apenas no servidor de produção (k3s).
-- Ferramenta EF Core CLI (instalar uma vez globalmente):
 
-```bash
-dotnet tool install --global dotnet-ef --version 9.*
-```
+> **EF Core Migrations não são utilizadas neste projeto.** O schema do banco de dados é gerenciado exclusivamente por scripts SQL versionados em `database/`, executados diretamente no PostgreSQL. O EF Core é usado apenas para mapeamento de entidades e consultas.
 
 - Repositório de documentação clonado localmente em `C:\workarea\projects\servizone`:
 
@@ -156,11 +153,16 @@ Ao iniciar em modo Development, a API abre automaticamente um túnel SSH que red
 
 O `SshTunnelService` (implementado como `IHostedService`) faz isso usando a biblioteca **SSH.NET** (`Renci.SshNet`). Em produção o túnel não é ativado — a API conecta diretamente via variáveis de ambiente.
 
-### 5. Execute as migrations
+### 5. Execute os scripts de banco de dados
+
+Os scripts SQL estão em `database/` e devem ser executados diretamente no PostgreSQL em ordem numérica:
 
 ```bash
-dotnet ef database update --project src/ServiZone.Infrastructure --startup-project src/ServiZone.Api
+psql -h 127.0.0.1 -p 15432 -U servizone -d servizone_dev -f database/001_create_organizations.sql
+# repetir para cada script na sequência
 ```
+
+> Execute os scripts com o túnel SSH ativo (passo 4).
 
 ### 6. Inicie a API
 
