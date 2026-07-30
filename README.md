@@ -58,8 +58,9 @@ ServiZone.sln
 ## Pré-requisitos
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/)
+
+> Docker **não é necessário** no ambiente local. O banco de dados e o Redis rodam remotamente no servidor e são acessados via túnel SSH. Docker é utilizado apenas no servidor de produção (k3s).
 - Ferramenta EF Core CLI (instalar uma vez globalmente):
 
 ```bash
