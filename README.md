@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/flavio-santos-ti/servizone/main/marca/logo/logo-servizone.png" alt="ServiZone" width="200"/>
+</p>
+
 # ServiZone API
 
 Backend da plataforma **ServiZone** — sistema de gestão e orquestração de operações em campo.
