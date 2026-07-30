@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/flavio-santos-ti/servizone/main/marca/logo/logo-servizone.png" alt="ServiZone" width="200"/>
+  <img src="logo-servizone.png" alt="ServiZone" width="200"/>
 </p>
 
 # ServiZone API
