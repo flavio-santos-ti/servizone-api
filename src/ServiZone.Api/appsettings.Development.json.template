@@ -1,0 +1,42 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=127.0.0.1;Port=15432;Database=servizone_dev;Username=servizone;Password=<senha>;Timeout=30;Command Timeout=30"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft.AspNetCore": "Information",
+      "Microsoft.EntityFrameworkCore": "Information"
+    }
+  },
+  "SshTunnel": {
+    "Enabled": true,
+    "SshHost": "<ip-do-servidor>",
+    "SshPort": 22,
+    "SshUsername": "root",
+    "SshPrivateKeyPath": "C:\\workarea\\chaves\\api-dev\\id_ed25519",
+    "SshPassphrase": "",
+    "RemoteHost": "127.0.0.1",
+    "RemotePort": 5432,
+    "LocalPort": 15432,
+    "RedisRemotePort": 6379,
+    "RedisLocalPort": 6379
+  },
+  "Redis": {
+    "ConnectionString": "localhost:6379,password=<senha>,abortConnect=false"
+  },
+  "Jwt": {
+    "Secret": "chave-de-desenvolvimento-nao-usar-em-producao-trocar-por-chave-forte",
+    "Issuer": "ServiZone.Api.Dev",
+    "Audience": "ServiZone.Client.Dev",
+    "AccessTokenExpirationMinutes": 480,
+    "RefreshTokenExpirationDays": 30
+  },
+  "Geocoding": {
+    "Provider": "Google",
+    "ApiKey": "<sua-chave-api-google-maps>"
+  },
+  "Push": {
+    "FcmServiceAccountJson": "<base64-encoded-json>"
+  }
+}

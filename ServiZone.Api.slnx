@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/1 - Api/">
+    <Project Path="src/ServiZone.Api/ServiZone.Api.csproj" />
+  </Folder>
+  <Folder Name="/2 - Application/">
+    <Project Path="src/ServiZone.Application/ServiZone.Application.csproj" />
+  </Folder>
+  <Folder Name="/3 - Domain/">
+    <Project Path="src/ServiZone.Domain/ServiZone.Domain.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infrastructure/">
+    <Project Path="src/ServiZone.Infrastructure/ServiZone.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/5 - Tests/">
+    <Project Path="tests/ServiZone.Domain.Tests/ServiZone.Domain.Tests.csproj" />
+    <Project Path="tests/ServiZone.Application.Tests/ServiZone.Application.Tests.csproj" />
+    <Project Path="tests/ServiZone.Integration.Tests/ServiZone.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

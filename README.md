@@ -10,46 +10,289 @@ Responsável por expor a API REST consumida pelo frontend web e pelo aplicativo 
 
 ---
 
-## Tecnologias
+## 📋 Índice
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | ASP.NET Core (.NET 9) |
-| ORM | Entity Framework Core 9 + Npgsql.EntityFrameworkCore.PostgreSQL 9 |
-| Banco de Dados | PostgreSQL |
-| Cache | Redis via StackExchange.Redis |
-| Autenticação | JWT Bearer Token via System.IdentityModel.Tokens.Jwt |
-| Hash de Senha | BCrypt.Net-Next — hashing de senhas na camada Application |
-| Armazenamento de Arquivos | Cloudflare R2 via AWS SDK S3 — fotos de perfil de Técnicos |
-| Geração de PDF | QuestPDF — relatórios e comprovantes de atendimento |
-| Padrão de Resposta | Flavio.Santos.NetCore.ApiResponse — envelope padronizado de retorno da API |
-| Background Jobs | .NET BackgroundService (Outbox Pattern) |
-| Documentação da API | Swashbuckle.AspNetCore (OpenAPI / Swagger UI) |
-| Túnel de Desenvolvimento | SSH.NET (`Renci.SshNet`) — túnel SSH para banco remoto |
-| Containerização | Docker / k3s |
+- [Tecnologias](#-tecnologias)
+- [Arquitetura](#-arquitetura)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Pré-requisitos](#-pré-requisitos)
+- [Configuração](#-configuração)
+- [Executando o Projeto](#-executando-o-projeto)
+- [Scripts SQL](#-scripts-sql)
+- [Multi-tenancy](#-multi-tenancy)
+- [Convenções](#-convenções)
+- [Documentação Completa](#-documentação-completa)
 
 ---
 
-## Arquitetura
+## 🚀 Tecnologias
 
-O projeto segue os princípios da **Clean Architecture**, organizado em camadas com separação clara de responsabilidades.
+| Camada           | Tecnologia                              | Versão   |
+| ---------------- | --------------------------------------- | -------- |
+| Framework        | ASP.NET Core                            | .NET 9   |
+| ORM              | Entity Framework Core + Npgsql          | 9.0      |
+| Banco de Dados   | PostgreSQL                              | 16       |
+| Cache            | Redis via StackExchange.Redis           | 7        |
+| Autenticação     | JWT Bearer Token                        | -        |
+| Hash de Senha    | BCrypt.Net-Next                         | 4.0.3    |
+| Storage          | Cloudflare R2 via AWS SDK S3            | -        |
+| Geração de PDF   | QuestPDF                                | 2025.3+  |
+| Logging          | Serilog.AspNetCore                      | 9.0      |
+| Background Jobs  | .NET BackgroundService (Outbox Pattern) | -        |
+| Documentação API | Swashbuckle.AspNetCore (Swagger)        | -        |
+| Túnel SSH (Dev)  | SSH.NET (Renci.SshNet)                  | 2024.2.0 |
+| Containerização  | Docker / k3s                            | -        |
 
-Os projetos são organizados em **Solution Folders** no Visual Studio seguindo o fluxo real da informação — da entrada da requisição até a persistência:
+---
+
+## 🏗️ Arquitetura
+
+O projeto segue os princípios da **Clean Architecture**, com separação clara de responsabilidades em camadas. As dependências apontam sempre para dentro (das camadas externas para o núcleo de domínio).
+
+### Camadas
 
 ```
-ServiZone.sln
-│
-├── 📁 1 - Api            → ServiZone.Api        (Controllers, Middleware, DI)
-├── 📁 2 - Application    → ServiZone.Application (DTOs, Use Cases, interfaces)
-├── 📁 3 - Domain         → ServiZone.Domain      (Entidades, Value Objects, regras de negócio)
-├── 📁 4 - Infrastructure → ServiZone.Infrastructure (EF Core, Redis, adapters externos)
-├── 📁 5 - Workers        → ServiZone.Workers     (Background Services: webhooks, push, geocoding)
-│
-└── 📁 Tests
-    ├── ServiZone.Domain.Tests
-    ├── ServiZone.Application.Tests
-    └── ServiZone.Integration.Tests
+┌─────────────────────────────────────────────────────┐
+│              1 - Api (HTTP Entry Point)             │
+│  Controllers, Middleware, Filters, DI, Program.cs   │
+└─────────────────────┬───────────────────────────────┘
+                      │ depende de
+┌─────────────────────▼───────────────────────────────┐
+│         2 - Application (Use Cases & DTOs)          │
+│   Request/Response DTOs, Application Services,      │
+│   Interfaces de serviços externos                   │
+└─────────────────────┬───────────────────────────────┘
+                      │ depende de
+┌─────────────────────▼───────────────────────────────┐
+│           3 - Domain (Business Rules)               │
+│   Entidades, Value Objects, Interfaces, Events      │
+│   SEM dependências externas (puro C#)               │
+└─────────────────────△───────────────────────────────┘
+                      │ implementa
+┌─────────────────────┴───────────────────────────────┐
+│     4 - Infrastructure (Data & External Services)   │
+│  EF Core, Repositórios, Redis, Geocoder, S3, etc.   │
+└─────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+ServiZone.Api.sln
+│
+├── src/
+│   ├── ServiZone.Api/
+│   │   ├── Controllers/          # Endpoints HTTP
+│   │   ├── Middleware/           # Middlewares customizados
+│   │   ├── Configuration/        # POCOs de configuração
+│   │   ├── Services/             # Serviços da camada Api (CurrentTenant, etc.)
+│   │   ├── Program.cs            # Entry point e configuração de DI
+│   │   └── appsettings.json      # Configurações gerais
+│   │
+│   ├── ServiZone.Application/
+│   │   ├── UseCases/             # Application Services / Use Cases
+│   │   ├── DTOs/                 # Request e Response DTOs
+│   │   └── Interfaces/           # Interfaces de serviços externos
+│   │
+│   ├── ServiZone.Domain/
+│   │   ├── Entities/             # Entidades de negócio
+│   │   ├── ValueObjects/         # Value Objects
+│   │   ├── Interfaces/           # Interfaces de repositórios
+│   │   └── Events/               # Domain Events
+│   │
+│   └── ServiZone.Infrastructure/
+│       ├── Data/                 # DbContext e Configurations (EF Core)
+│       ├── Repositories/         # Implementações de repositórios
+│       ├── Cache/                # Implementação de cache (Redis)
+│       └── Services/             # Adapters externos (Geocoder, Push, S3)
+│
+├── tests/
+│   ├── ServiZone.Domain.Tests/
+│   ├── ServiZone.Application.Tests/
+│   └── ServiZone.Integration.Tests/
+│
+└── database/
+    ├── 000_create_database.sql
+    ├── 001_create_organizations.sql
+    └── ... (scripts SQL versionados)
+```
+
+---
+
+## ⚙️ Pré-requisitos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [PostgreSQL 16](https://www.postgresql.org/download/)
+- [Redis 7](https://redis.io/download/)
+- IDE: [Visual Studio 2022](https://visualstudio.microsoft.com/) ou [VS Code](https://code.visualstudio.com/)
+
+---
+
+## 🔧 Configuração
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/seu-usuario/servizone-api.git
+cd servizone-api
+```
+
+### 2. Configure o banco de dados
+
+Execute os scripts SQL na ordem numérica em `database/`:
+
+```bash
+psql -h localhost -U postgres -d servizone -f database/000_create_database.sql
+psql -h localhost -U postgres -d servizone -f database/001_create_organizations.sql
+# ... e assim por diante
+```
+
+> ⚠️ **Importante**: Este projeto **não usa EF Core Migrations**. O schema é gerenciado exclusivamente via scripts SQL versionados.
+
+### 3. Configure as credenciais
+
+Copie o template e preencha com suas credenciais:
+
+```bash
+cd src/ServiZone.Api
+cp appsettings.Development.json.template appsettings.Development.json
+```
+
+Edite `appsettings.Development.json` com suas credenciais reais (PostgreSQL, Redis, JWT Secret, Google Maps API Key, etc.).
+
+> 🔒 **Segurança**: `appsettings.Development.json` está no `.gitignore`. **NUNCA** versione este arquivo.
+
+### 4. Restaure os pacotes
+
+```bash
+dotnet restore
+```
+
+---
+
+## 🏃 Executando o Projeto
+
+### Modo Development (com túnel SSH)
+
+```bash
+cd src/ServiZone.Api
+dotnet run
+```
+
+A API estará disponível em:
+
+- HTTPS: `https://localhost:7001`
+- HTTP: `http://localhost:5001`
+- Swagger UI: `https://localhost:7001/swagger`
+
+### Modo Production (Docker/k3s)
+
+Consulte a [documentação de infraestrutura](../servizone/docs/08-arquitetura/servizone-08-02-arquitetura-infraestrutura.md).
+
+---
+
+## 📊 Scripts SQL
+
+⚠️ **IMPORTANTE**: Este projeto **não utiliza EF Core Migrations**.
+
+Todo o schema do banco de dados é gerenciado exclusivamente via **scripts SQL versionados** localizados em `database/`.
+
+### Por que não usar Migrations?
+
+- **Controle total**: scripts SQL permitem controle total sobre o schema, índices, tipos de dados PostgreSQL específicos (JSONB, TIMESTAMPTZ, UUID).
+- **Versionamento explícito**: cada alteração é um arquivo SQL numerado, facilitando auditoria e rollback.
+- **Sem dependência do ORM**: o schema não está acoplado ao EF Core ou às classes C#.
+- **Colaboração**: DBAs podem revisar e ajustar scripts sem conhecer C# ou EF Core.
+
+### Como aplicar mudanças no schema
+
+1. Crie um novo script SQL em `database/` seguindo a numeração sequencial (ex: `018_create_feedback_table.sql`)
+2. Execute o script diretamente no PostgreSQL:
+   ```bash
+   psql -h localhost -U servizone_dba -d servizone -f database/018_create_feedback_table.sql
+   ```
+3. Atualize o EF Core Configuration correspondente em `Infrastructure/Data/Configurations/`
+
+---
+
+## 🏢 Multi-tenancy
+
+O ServiZone implementa **multi-tenancy via Schema Compartilhado**:
+
+- Todas as entidades operacionais possuem `OrganizationId`
+- O **Global Query Filter** do EF Core aplica isolamento automático
+- O `OrganizationId` é extraído do JWT pelo `TenantMiddleware`
+- **Nunca** receba `OrganizationId` em payloads — ele vem sempre do token
+
+### Regra de Ouro
+
+**Nunca filtre manualmente por `OrganizationId` em queries LINQ**. O Global Query Filter já faz isso automaticamente.
+
+---
+
+## 📐 Convenções
+
+### Geração de UUIDs
+
+✅ **CORRETO**: UUIDs são gerados pela **camada Application** antes da persistência.
+
+```csharp
+var organization = new Organization(Guid.NewGuid(), "Acme Corp", "acme");
+```
+
+❌ **INCORRETO**: Nunca use `DEFAULT gen_random_uuid()` no PostgreSQL.
+
+### Entidades
+
+- Toda entidade herda de `Entity` (base) ou `TenantEntity` (multi-tenant)
+- Propriedades são `private set` — mutação via métodos de domínio
+- Construtor privado sem parâmetros para o ORM
+- Construtor público com validações para criação de novas instâncias
+
+### Repositórios
+
+- Interface no `Domain`, implementação na `Infrastructure`
+- Métodos assíncronos com `CancellationToken`
+- Queries LINQ filtradas automaticamente pelo Global Query Filter
+
+### DTOs
+
+- Request/Response DTOs ficam na `Application`
+- Naming: `CreateTicketRequest`, `TicketResponse`
+- Validação com Data Annotations ou FluentValidation
+
+---
+
+## 📚 Documentação Completa
+
+A documentação detalhada do projeto está disponível no repositório principal:
+
+📖 [C:\workarea\projects\servizone\docs\](C:\workarea\projects\servizone\docs\)
+
+Principais documentos:
+
+- [Visão do Produto](C:\workarea\projects\servizone\docs\01-visao-do-produto\servizone-01-visao-do-produto.md)
+- [Modelo de Domínio](C:\workarea\projects\servizone\docs\03-modelo-de-dominio\servizone-03-modelo-de-dominio.md)
+- [Arquitetura de Dados](C:\workarea\projects\servizone\docs\08-arquitetura\servizone-08-01-arquitetura-dados.md)
+- [Arquitetura de Infraestrutura](C:\workarea\projects\servizone\docs\08-arquitetura\servizone-08-02-arquitetura-infraestrutura.md)
+- [Arquitetura Backend](C:\workarea\projects\servizone\docs\08-arquitetura\servizone-08-03-arquitetura-backend.md)
+
+---
+
+## 📝 Licença
+
+[Definir licença]
+
+---
+
+## 👥 Contribuindo
+
+Consulte [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes de contribuição.
+└── ServiZone.Integration.Tests
+
+````
 
 > As Solution Folders são virtuais — existem apenas no `.sln` para organização visual no Visual Studio. No disco, os projetos ficam em `src/` e `tests/`.
 
@@ -69,7 +312,7 @@ ServiZone.sln
 ```bash
 cd C:\workarea\projects
 git clone https://github.com/flavio-santos-ti/servizone.git
-```
+````
 
 > O repositório de documentação é lido diretamente pelo GitHub Copilot a partir do disco local. Mantê-lo atualizado garante que as sugestões do Copilot reflitam sempre a documentação vigente.
 
@@ -146,10 +389,10 @@ Substitua os valores entre `<>` com as credenciais fornecidas pelo responsável 
 
 Ao iniciar em modo Development, a API abre automaticamente um túnel SSH que redireciona:
 
-| Serviço | Porta local | Porta remota |
-|---|---|---|
+| Serviço    | Porta local       | Porta remota      |
+| ---------- | ----------------- | ----------------- |
 | PostgreSQL | `localhost:15432` | `<servidor>:5432` |
-| Redis | `localhost:6379` | `<servidor>:6379` |
+| Redis      | `localhost:6379`  | `<servidor>:6379` |
 
 O `SshTunnelService` (implementado como `IHostedService`) faz isso usando a biblioteca **SSH.NET** (`Renci.SshNet`). Em produção o túnel não é ativado — a API conecta diretamente via variáveis de ambiente.
 
@@ -192,24 +435,24 @@ dotnet test tests/ServiZone.Integration.Tests
 
 A documentação completa do produto está no repositório **[servizone](https://github.com/flavio-santos-ti/servizone)**.
 
-| Seção | Documento |
-|---|---|
-| Visão do Produto | [servizone-01-visao-do-produto.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/01-visao-do-produto/servizone-01-visao-do-produto.md) |
-| Modelo de Domínio | [servizone-03-modelo-de-dominio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/03-modelo-de-dominio/servizone-03-modelo-de-dominio.md) |
-| Requisitos Funcionais | [servizone-04-00-requisitos-funcionais.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/04-requisitos-funcionais/servizone-04-00-requisitos-funcionais.md) |
-| Regras de Negócio | [servizone-05-00-regras-de-negocio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/05-regras-de-negocio/servizone-05-00-regras-de-negocio.md) |
-| Fluxos de Negócio | [servizone-06-00-fluxos-de-negocio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/06-fluxos-de-negocio/servizone-06-00-fluxos-de-negocio.md) |
+| Seção                     | Documento                                                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visão do Produto          | [servizone-01-visao-do-produto.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/01-visao-do-produto/servizone-01-visao-do-produto.md)                                  |
+| Modelo de Domínio         | [servizone-03-modelo-de-dominio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/03-modelo-de-dominio/servizone-03-modelo-de-dominio.md)                               |
+| Requisitos Funcionais     | [servizone-04-00-requisitos-funcionais.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/04-requisitos-funcionais/servizone-04-00-requisitos-funcionais.md)             |
+| Regras de Negócio         | [servizone-05-00-regras-de-negocio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/05-regras-de-negocio/servizone-05-00-regras-de-negocio.md)                         |
+| Fluxos de Negócio         | [servizone-06-00-fluxos-de-negocio.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/06-fluxos-de-negocio/servizone-06-00-fluxos-de-negocio.md)                         |
 | Requisitos Não Funcionais | [servizone-07-00-requisitos-nao-funcionais.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/07-requisitos-nao-funcionais/servizone-07-00-requisitos-nao-funcionais.md) |
-| Arquitetura — Visão Geral | [servizone-08-00-arquitetura-visao-geral.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/08-arquitetura/servizone-08-00-arquitetura-visao-geral.md) |
-| Arquitetura — Backend | [servizone-08-01-arquitetura-backend.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/08-arquitetura/servizone-08-01-arquitetura-backend.md) |
-| Contratos de API | [servizone-09-00-contratos-de-api.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/09-contratos-de-api/servizone-09-00-contratos-de-api.md) |
+| Arquitetura — Visão Geral | [servizone-08-00-arquitetura-visao-geral.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/08-arquitetura/servizone-08-00-arquitetura-visao-geral.md)                   |
+| Arquitetura — Backend     | [servizone-08-01-arquitetura-backend.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/08-arquitetura/servizone-08-01-arquitetura-backend.md)                           |
+| Contratos de API          | [servizone-09-00-contratos-de-api.md](https://github.com/flavio-santos-ti/servizone/blob/main/docs/09-contratos-de-api/servizone-09-00-contratos-de-api.md)                            |
 
 ---
 
 ## Repositórios relacionados
 
-| Repositório | Descrição |
-|---|---|
-| [servizone](https://github.com/flavio-santos-ti/servizone) | Documentação do produto |
-| [servizone-web](https://github.com/flavio-santos-ti/servizone-web) | Frontend Web (Angular) |
+| Repositório                                                              | Descrição                   |
+| ------------------------------------------------------------------------ | --------------------------- |
+| [servizone](https://github.com/flavio-santos-ti/servizone)               | Documentação do produto     |
+| [servizone-web](https://github.com/flavio-santos-ti/servizone-web)       | Frontend Web (Angular)      |
 | [servizone-mobile](https://github.com/flavio-santos-ti/servizone-mobile) | Aplicativo Mobile (Flutter) |

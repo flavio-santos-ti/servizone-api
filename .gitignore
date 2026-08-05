@@ -39,6 +39,14 @@ ScaffoldingReadMe.txt
 # dotenv environment variables file
 .env
 
+# ServiZone: segredos locais (nunca versionar)
+appsettings.Development.json
+appsettings.*.local.json
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
 # Others
 ~$*
 *~

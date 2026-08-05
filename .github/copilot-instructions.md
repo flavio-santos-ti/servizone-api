@@ -73,7 +73,6 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 **ServiZone.Infrastructure**
 - `ServiZoneDbContext` (EF Core 9 + Npgsql)
 - Implementações de repositório
-- Migrations
 - Redis cache (`StackExchange.Redis`)
 - Adapters externos: `GoogleGeocoder`, `FcmPushService`, `CloudflareR2FileStorage`
 - Tabela `outbox_events` + publisher atômico (Outbox Pattern)
@@ -248,6 +247,8 @@ Processamento assíncrono de webhooks, push e notificações:
 - Não coloque lógica de negócio em Controllers — use Use Cases
 - Não referencie EF Core, Redis ou frameworks externos no `Domain`
 - Não versione `appsettings.Development.json`, `.env` ou chaves SSH
+- Não use EF Core Migrations — o schema é gerenciado exclusivamente por scripts SQL versionados em `database/`
+- Não declare `DEFAULT gen_random_uuid()` em colunas `id` — UUIDs são sempre gerados pelo backend (camada Application) antes da persistência
 
 ---
 
@@ -256,9 +257,9 @@ Processamento assíncrono de webhooks, push e notificações:
 **Development**: túnel SSH automático via `SshTunnelService`. Connection string aponta para `localhost:15432` (porta local do túnel).
 
 **Production**: sem túnel. Configuração via variáveis de ambiente injetadas pelo k3s:
-- `DATABASE_CONNECTION_STRING`
+- `DATABASE__CONNECTIONSTRING`
 - `REDIS__CONNECTIONSTRING`
-- `JWT__SECRETKEY`
+- `JWT__SECRET`
 - `CLOUDFLARE_R2__ACCESSKEY` / `SECRETKEY`
 
 ---
@@ -269,10 +270,8 @@ A documentação completa está disponível **localmente** no repositório `serv
 
 > **Pré-requisito**: clone o repositório de documentação antes de iniciar o desenvolvimento:
 > ```bash
-> ```bash
 > cd C:\workarea\projects
 > git clone https://github.com/flavio-santos-ti/servizone.git
-> ```
 > ```
 
 | Documento | Caminho local |

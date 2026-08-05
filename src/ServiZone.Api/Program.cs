@@ -1,0 +1,62 @@
+using Microsoft.EntityFrameworkCore;
+using ServiZone.Api.Middleware;
+using ServiZone.Api.Services;
+using ServiZone.Domain.Interfaces;
+using ServiZone.Infrastructure.Data;
+using ServiZone.Infrastructure.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configuração de Serviços
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// HttpContextAccessor para acesso ao contexto HTTP
+builder.Services.AddHttpContextAccessor();
+
+// CurrentTenant para resolução do tenant (organização) atual
+builder.Services.AddScoped<ICurrentTenant, CurrentTenant>();
+
+// Configuração do DbContext com PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ServiZoneDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Repositórios
+builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+
+// CORS (configurar de acordo com a necessidade)
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+var app = builder.Build();
+
+// Configuração do Pipeline HTTP
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// Middlewares
+app.UseCorrelationId();
+app.UseHttpsRedirection();
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Controllers
+app.MapControllers();
+
+// Health Check básico
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+app.Run();
