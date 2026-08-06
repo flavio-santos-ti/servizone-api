@@ -50,7 +50,9 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 ### Responsabilidades por Camada
 
 **ServiZone.Api**
-- Controllers, Middleware, filtros globais de exceção
+- **Minimal API** (sem Controllers/MVC): Endpoints organizados por feature em classes de extensão de `IEndpointRouteBuilder` (ex.: `TicketEndpoints`, `TechnicianEndpoints`), cada uma expondo um método `Map*Endpoints(this IEndpointRouteBuilder app)`
+- Route Groups via `app.MapGroup(...)` por feature (prefixo, tags de OpenAPI, políticas de autorização)
+- Middleware, filtros globais de exceção, `IEndpointFilter` para validação de request
 - Configuração de DI (Program.cs)
 - `SshTunnelService` (IHostedService — Development only)
 - Registra `Flavio.Santos.NetCore.ApiResponse` nas respostas HTTP
@@ -232,6 +234,7 @@ Processamento assíncrono de webhooks, push e notificações:
 ## 11. Regras de Código
 
 ### O que SEMPRE fazer
+- Defina endpoints com **Minimal API** (`MapGroup`/`MapGet`/`MapPost`/...), organizados por feature em classes de extensão de `IEndpointRouteBuilder`
 - DTOs (Request/Response) ficam em `ServiZone.Application`
 - Hash de senha com `BCrypt.Net-Next` na camada Application
 - Respostas sempre via `Flavio.Santos.NetCore.ApiResponse`
@@ -240,6 +243,7 @@ Processamento assíncrono de webhooks, push e notificações:
 - Túnel SSH (`SshTunnelService`) registrado **somente** em Development
 
 ### O que NUNCA fazer
+- Não use Controllers baseados em `ControllerBase`/MVC — a API é implementada inteiramente com Minimal API
 - Não filtre manualmente por `OrganizationId` em queries
 - Não receba `OrganizationId` em payloads de request
 - Não retorne objetos brutos nos Controllers — use o envelope de resposta
