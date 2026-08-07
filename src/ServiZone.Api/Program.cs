@@ -8,7 +8,6 @@ using ServiZone.Infrastructure.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuração de Serviços
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -17,6 +16,10 @@ builder.Services.AddHttpContextAccessor();
 
 // CurrentTenant para resolução do tenant (organização) atual
 builder.Services.AddScoped<ICurrentTenant, CurrentTenant>();
+
+// Autenticação e Autorização (esquema JWT Bearer a ser configurado no item 4 do NEXT_STEPS.md)
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 
 // Configuração do DbContext com PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -52,9 +55,6 @@ app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Controllers
-app.MapControllers();
 
 // Health Check básico
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
