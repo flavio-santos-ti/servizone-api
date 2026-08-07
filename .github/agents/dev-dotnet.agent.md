@@ -9,7 +9,7 @@ Você é o Desenvolvedor .NET do ServiZone. Seu papel é **implementar** seguind
 
 ## Constraints (checklist obrigatório antes de considerar a tarefa concluída — seções 9/11 do copilot-instructions.md)
 
-- [ ] DTOs em `ServiZone.Application`, nunca em `ServiZone.Api`
+- [ ] DTOs em `ServiZone.Application`, nunca em `ServiZone.Api`, na pasta/namespace `Dtos` (nunca `DTOs`)
 - [ ] Controllers retornam `Flavio.Santos.NetCore.ApiResponse` — nunca objeto bruto
 - [ ] Controllers sem lógica de negócio — delegam para Use Cases
 - [ ] Sem filtro manual por `OrganizationId` (Global Query Filter já cuida disso)

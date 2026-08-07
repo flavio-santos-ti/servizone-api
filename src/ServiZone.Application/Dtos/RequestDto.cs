@@ -1,4 +1,4 @@
-namespace ServiZone.Application.DTOs;
+namespace ServiZone.Application.Dtos;
 
 /// <summary>
 /// DTO base para requisições.

@@ -58,7 +58,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 - Registra `Flavio.Santos.NetCore.ApiResponse` nas respostas HTTP
 
 **ServiZone.Application**
-- DTOs de entrada (Request) e saída (Response)
+- DTOs de entrada (Request) e saída (Response) — pasta/namespace `Dtos`
 - Use Cases / Application Services
 - Interfaces de serviços externos (`IGeocoder`, `IPushNotificationService`, `IOutboxPublisher`, `IFileStorageService`)
 - Hash de senha com `BCrypt.Net-Next`
@@ -235,7 +235,7 @@ Processamento assíncrono de webhooks, push e notificações:
 
 ### O que SEMPRE fazer
 - Defina endpoints com **Minimal API** (`MapGroup`/`MapGet`/`MapPost`/...), organizados por feature em classes de extensão de `IEndpointRouteBuilder`
-- DTOs (Request/Response) ficam em `ServiZone.Application`
+- DTOs (Request/Response) ficam em `ServiZone.Application`, na pasta/namespace `Dtos` (nunca `DTOs`) — segue a convenção .NET de PascalCase para siglas com 3+ letras (ex.: `Dto`, `Uri`, `Xml`)
 - Hash de senha com `BCrypt.Net-Next` na camada Application
 - Respostas sempre via `Flavio.Santos.NetCore.ApiResponse`
 - Global Query Filter do EF Core gerencia o isolamento multi-tenant

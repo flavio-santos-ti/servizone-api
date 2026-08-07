@@ -93,7 +93,7 @@ ServiZone.Api.sln
 │   │
 │   ├── ServiZone.Application/
 │   │   ├── UseCases/             # Application Services / Use Cases
-│   │   ├── DTOs/                 # Request e Response DTOs
+│   │   ├── Dtos/                 # Request e Response DTOs
 │   │   └── Interfaces/           # Interfaces de serviços externos
 │   │
 │   ├── ServiZone.Domain/
@@ -259,7 +259,7 @@ var organization = new Organization(Guid.NewGuid(), "Acme Corp", "acme");
 
 ### DTOs
 
-- Request/Response DTOs ficam na `Application`
+- Request/Response DTOs ficam na `Application`, na pasta/namespace `Dtos` (nunca `DTOs`)
 - Naming: `CreateTicketRequest`, `TicketResponse`
 - Validação com Data Annotations ou FluentValidation
 
