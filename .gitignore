@@ -67,3 +67,10 @@ nunit-*.xml
 
 # Visual Studio
 .vs/
+
+# Python
+__pycache__/
+*.pyc
+
+# Saída gerada pelo scripts/export-swagger.py
+scripts/postman-collection.json
