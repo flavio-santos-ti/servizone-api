@@ -51,6 +51,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 
 **ServiZone.Api**
 - **Minimal API** (sem Controllers/MVC): Endpoints organizados por feature em classes de extensão de `IEndpointRouteBuilder` (ex.: `TicketEndpoints`, `TechnicianEndpoints`), cada uma expondo um método `Map*Endpoints(this IEndpointRouteBuilder app)`, na pasta/namespace `Endpoints` (nunca `Controllers`)
+- Cada classe `XxxEndpoints` chama `.WithTags("Xxx")` (nome da classe sem o sufixo `Endpoints`), para agrupar corretamente no Swagger e na collection do Postman gerada por `scripts/export-swagger.py`
 - Route Groups via `app.MapGroup(...)` por feature (prefixo, tags de OpenAPI, políticas de autorização)
 - Middleware, filtros globais de exceção, `IEndpointFilter` para validação de request
 - Configuração de DI (Program.cs)
