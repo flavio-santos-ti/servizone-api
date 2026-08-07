@@ -50,7 +50,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 ### Responsabilidades por Camada
 
 **ServiZone.Api**
-- **Minimal API** (sem Controllers/MVC): Endpoints organizados por feature em classes de extensão de `IEndpointRouteBuilder` (ex.: `TicketEndpoints`, `TechnicianEndpoints`), cada uma expondo um método `Map*Endpoints(this IEndpointRouteBuilder app)`
+- **Minimal API** (sem Controllers/MVC): Endpoints organizados por feature em classes de extensão de `IEndpointRouteBuilder` (ex.: `TicketEndpoints`, `TechnicianEndpoints`), cada uma expondo um método `Map*Endpoints(this IEndpointRouteBuilder app)`, na pasta/namespace `Endpoints` (nunca `Controllers`)
 - Route Groups via `app.MapGroup(...)` por feature (prefixo, tags de OpenAPI, políticas de autorização)
 - Middleware, filtros globais de exceção, `IEndpointFilter` para validação de request
 - Configuração de DI (Program.cs)
@@ -234,7 +234,7 @@ Processamento assíncrono de webhooks, push e notificações:
 ## 11. Regras de Código
 
 ### O que SEMPRE fazer
-- Defina endpoints com **Minimal API** (`MapGroup`/`MapGet`/`MapPost`/...), organizados por feature em classes de extensão de `IEndpointRouteBuilder`
+- Defina endpoints com **Minimal API** (`MapGroup`/`MapGet`/`MapPost`/...), organizados por feature em classes de extensão de `IEndpointRouteBuilder`, na pasta/namespace `Endpoints`
 - DTOs (Request/Response) ficam em `ServiZone.Application`, na pasta/namespace `Dtos` (nunca `DTOs`) — segue a convenção .NET de PascalCase para siglas com 3+ letras (ex.: `Dto`, `Uri`, `Xml`)
 - Hash de senha com `BCrypt.Net-Next` na camada Application
 - Respostas sempre via `Flavio.Santos.NetCore.ApiResponse`

@@ -84,7 +84,7 @@ ServiZone.Api.sln
 │
 ├── src/
 │   ├── ServiZone.Api/
-│   │   ├── Controllers/          # Endpoints HTTP
+│   │   ├── Endpoints/            # Classes de extensão IEndpointRouteBuilder (Minimal API)
 │   │   ├── Middleware/           # Middlewares customizados
 │   │   ├── Configuration/        # POCOs de configuração
 │   │   ├── Services/             # Serviços da camada Api (CurrentTenant, etc.)

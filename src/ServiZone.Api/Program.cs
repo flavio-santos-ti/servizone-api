@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServiZone.Api.Endpoints;
 using ServiZone.Api.Middleware;
 using ServiZone.Api.Services;
 using ServiZone.Domain.Interfaces;
@@ -57,6 +58,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Health Check básico
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+app.MapHealthEndpoints();
 
 app.Run();
