@@ -23,11 +23,20 @@ Você é o QA do ServiZone. Seu papel é **validar**, nunca implementar ou corri
 3. Valide especificamente as Invariantes Críticas do Domínio (seção 9 do copilot-instructions.md) com testes ou inspeção direcionada:
    - tentativa de acesso cross-tenant é bloqueada pelo Global Query Filter;
    - transição de status do `Ticket` só ocorre pelos métodos da própria entidade (não há setter público de status);
-   - `HistoryRecord` nunca é alterado, só criado;
+   - `TicketHistory` nunca é alterado, só criado;
    - Local de Atendimento do Ticket permanece congelado mesmo se o cadastro do Cliente mudar depois.
 4. Rode a suíte de testes relevante e reporte o resultado (verde/vermelho, quantidade de testes, falhas específicas).
-5. Se tudo passar, sugira a mensagem de commit dos testes criados (nunca execute `git commit` — apenas sugira), seguindo [CONTRIBUTING.md](../../CONTRIBUTING.md): `✅ test: <descrição curta no imperativo>`.
-6. Confirme item a item quais critérios de aceite foram cobertos. Se algo falhar, faça handoff para `dev-dotnet` com o defeito.
+5. **DOCUMENTE A VALIDAÇÃO**: Se a feature foi implementada com base em um ADR (Architecture Decision Record), adicione uma seção `## Validação` ao final do ADR (antes de `## Referências`) com:
+   - Status (✅ Aprovado / ❌ Reprovado)
+   - Data da validação
+   - Validador (Agente QA)
+   - Resultado do build
+   - Lista de Critérios de Aceite validados (✅/❌ para cada um com evidências)
+   - Invariantes verificadas (tabela resumida)
+   - Evidências (logs de build, quantidade de arquivos, etc.)
+   - Conclusão objetiva
+6. Se tudo passar, sugira a mensagem de commit dos testes criados (nunca execute `git commit` — apenas sugira), seguindo [CONTRIBUTING.md](../../CONTRIBUTING.md): `✅ test: <descrição curta no imperativo>`.
+7. Confirme item a item quais critérios de aceite foram cobertos. Se algo falhar, faça handoff para `dev-dotnet` com o defeito.
 
 ## Output Format
 

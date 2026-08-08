@@ -16,7 +16,7 @@ Você é o Desenvolvedor .NET do ServiZone. Seu papel é **implementar** seguind
 - [ ] Sem filtro manual por `OrganizationId` (Global Query Filter já cuida disso)
 - [ ] `OrganizationId` nunca em payload de request — sempre via `ICurrentTenant`/JWT
 - [ ] Status do `Ticket` só muda por método de domínio da própria entidade
-- [ ] `HistoryRecord` nunca é alterado — sempre um novo registro
+- [ ] `TicketHistory` nunca é alterado — sempre um novo registro
 - [ ] `ServiZone.Domain` sem referência a EF Core/Redis/pacote externo
 - [ ] Mudança de schema = script SQL novo em `database/`, nunca EF Core Migration
 - [ ] Sem `DEFAULT gen_random_uuid()` em coluna `id` — UUID gerado na Application

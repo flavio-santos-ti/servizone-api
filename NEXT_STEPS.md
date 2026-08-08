@@ -58,34 +58,34 @@ Implementar as entidades restantes conforme o modelo de domínio:
 
 **Prioridade Alta:**
 
-- [ ] `Ticket` (entidade central do sistema)
-- [ ] `Technician` (agregado de User + TechnicianProfile + TechnicianLocation)
+- [x] `Ticket` (entidade central do sistema) — ✅ Implementado e validado (ADR 0001)
+- [x] `Technician` (profissional de campo) — ✅ Implementado e validado (ADR 0001)
 - [ ] `User` (credenciais de autenticação)
-- [ ] `Client` (destinatário do serviço)
-- [ ] `Team` (grupo de técnicos)
+- [x] `Client` (destinatário do serviço) — ✅ Implementado e validado (ADR 0001)
+- [x] `Team` (grupo de técnicos) — ✅ Implementado e validado (ADR 0001)
 
 **Prioridade Média:**
 
-- [ ] `Attendance` (execução prática do Ticket)
-- [ ] `Integration` (configuração de sistemas externos)
-- [ ] `HistoryRecord` (histórico de eventos do Ticket)
+- [x] `Attendance` (execução prática do Ticket) — ✅ Implementado e validado (ADR 0001)
+- [x] `Integration` (configuração de sistemas externos) — ✅ Implementado e validado (ADR 0001)
+- [x] `TicketHistory` (histórico de eventos do Ticket) — ✅ Implementado e validado (ADR 0001 + ADR 0002)
 
 **Configuráveis por Organização:**
 
-- [ ] `ServiceType`
-- [ ] `Priority`
+- [ ] `ServiceType` — ⚠️ Value Object implementado; entidade configurável pendente
+- [ ] `Priority` — ⚠️ Value Object implementado; entidade configurável pendente
 - [ ] `RefusalReason`
 
 ### 2. Implementar Value Objects
 
 Criar os value objects conforme documentação:
 
-- [ ] `TicketStatus` (enum)
-- [ ] `GeoCoordinates` (latitude, longitude)
-- [ ] `TechnicianLocation` (coordenadas + timestamp)
-- [ ] `ServiceAddress` (endereço congelado no momento da criação do Ticket)
-- [ ] `ServiceRadius` (distância máxima para distribuição)
-- [ ] `ExternalId` (identificador no sistema de origem)
+- [x] `TicketStatus` (constantes) — ✅ Implementado como classe estática em `Ticket.cs` (ADR 0001)
+- [x] `GeoCoordinates` (latitude, longitude) — ✅ Implementado e validado (ADR 0001)
+- [x] `TechnicianLocation` (coordenadas + timestamp) — ✅ Implementado e validado (ADR 0001)
+- [x] `ServiceAddress` (endereço congelado no momento da criação do Ticket) — ✅ Implementado e validado (ADR 0001)
+- [x] `ServiceRadius` (distância máxima para distribuição) — ✅ Implementado e validado (ADR 0001)
+- [x] `ExternalId` (identificador no sistema de origem) — ✅ Implementado e validado (ADR 0001)
 
 ### 3. Completar Repositórios
 

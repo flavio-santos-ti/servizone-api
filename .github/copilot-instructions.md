@@ -14,21 +14,21 @@ O ServiZone **não é** um ERP, CRM, help desk ou sistema de manutenção. É um
 
 ## 2. Stack de Tecnologias
 
-| Pacote | Camada | Papel |
-|---|---|---|
-| ASP.NET Core (.NET 9) | Api | Framework principal |
-| Entity Framework Core 9 | Infrastructure | ORM |
-| Npgsql.EntityFrameworkCore.PostgreSQL 9 | Infrastructure | Provider PostgreSQL |
-| StackExchange.Redis | Api / Application | Cliente Redis |
-| System.IdentityModel.Tokens.Jwt | Api | Geração e validação de JWT |
-| Microsoft.AspNetCore.Authentication.JwtBearer | Api | Middleware de autenticação JWT |
-| BCrypt.Net-Next | Application | Hash de senhas |
-| AWSSDK.S3 | Application / Infrastructure | Cloudflare R2 (fotos de Técnicos) |
-| QuestPDF | Application | Geração de PDFs |
-| Flavio.Santos.NetCore.ApiResponse | Api / Application | Envelope padronizado de resposta |
-| Swashbuckle.AspNetCore | Api | OpenAPI / Swagger UI |
-| SSH.NET (Renci.SshNet) | Api | Túnel SSH para banco remoto (Development only) |
-| Docker / k3s | Infra | Containerização e orquestração |
+| Pacote                                        | Camada                       | Papel                                          |
+| --------------------------------------------- | ---------------------------- | ---------------------------------------------- |
+| ASP.NET Core (.NET 9)                         | Api                          | Framework principal                            |
+| Entity Framework Core 9                       | Infrastructure               | ORM                                            |
+| Npgsql.EntityFrameworkCore.PostgreSQL 9       | Infrastructure               | Provider PostgreSQL                            |
+| StackExchange.Redis                           | Api / Application            | Cliente Redis                                  |
+| System.IdentityModel.Tokens.Jwt               | Api                          | Geração e validação de JWT                     |
+| Microsoft.AspNetCore.Authentication.JwtBearer | Api                          | Middleware de autenticação JWT                 |
+| BCrypt.Net-Next                               | Application                  | Hash de senhas                                 |
+| AWSSDK.S3                                     | Application / Infrastructure | Cloudflare R2 (fotos de Técnicos)              |
+| QuestPDF                                      | Application                  | Geração de PDFs                                |
+| Flavio.Santos.NetCore.ApiResponse             | Api / Application            | Envelope padronizado de resposta               |
+| Swashbuckle.AspNetCore                        | Api                          | OpenAPI / Swagger UI                           |
+| SSH.NET (Renci.SshNet)                        | Api                          | Túnel SSH para banco remoto (Development only) |
+| Docker / k3s                                  | Infra                        | Containerização e orquestração                 |
 
 ---
 
@@ -50,6 +50,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 ### Responsabilidades por Camada
 
 **ServiZone.Api**
+
 - **Minimal API** (sem Controllers/MVC): Endpoints organizados por feature em classes de extensão de `IEndpointRouteBuilder` (ex.: `TicketEndpoints`, `TechnicianEndpoints`), cada uma expondo um método `Map*Endpoints(this IEndpointRouteBuilder app)`, na pasta/namespace `Endpoints` (nunca `Controllers`)
 - Cada classe `XxxEndpoints` chama `.WithTags("Xxx")` (nome da classe sem o sufixo `Endpoints`), para agrupar corretamente no Swagger e na collection do Postman gerada por `scripts/export-swagger.py`
 - Route Groups via `app.MapGroup(...)` por feature (prefixo, tags de OpenAPI, políticas de autorização)
@@ -59,6 +60,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 - Registra `Flavio.Santos.NetCore.ApiResponse` nas respostas HTTP
 
 **ServiZone.Application**
+
 - DTOs de entrada (Request) e saída (Response) — pasta/namespace `Dtos`
 - Use Cases / Application Services
 - Interfaces de serviços externos (`IGeocoder`, `IPushNotificationService`, `IOutboxPublisher`, `IFileStorageService`)
@@ -67,13 +69,15 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 - Upload de arquivos com `AWSSDK.S3`
 
 **ServiZone.Domain**
-- Entidades: `Ticket`, `Organization`, `Technician`, `Team`, `Client`, `Attendance`, `Integration`, `HistoryRecord`
+
+- Entidades: `Ticket`, `Organization`, `Technician`, `Team`, `Client`, `Attendance`, `Integration`, `TicketHistory`
 - Value Objects: `Location`, `ServiceAddress`, `Priority`, `ServiceType`, `ExternalId`, `ServiceRadius`, `TechnicianAvailability`
 - Interfaces de repositório: `ITicketRepository`, `ITechnicianRepository`, etc.
 - Domain Events: `TicketCreated`, `TicketStatusChanged`, `LocationUpdated`
 - Nenhuma dependência de EF Core, Redis ou qualquer framework externo
 
 **ServiZone.Infrastructure**
+
 - `ServiZoneDbContext` (EF Core 9 + Npgsql)
 - Implementações de repositório
 - Redis cache (`StackExchange.Redis`)
@@ -81,6 +85,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 - Tabela `outbox_events` + publisher atômico (Outbox Pattern)
 
 **ServiZone.Workers**
+
 - `WebhookDeliveryWorker` — polling do outbox, entrega com retentativa exponencial
 - `PushNotificationWorker` — entrega de notificações push
 - `GeocodingWorker` — geocodificação assíncrona de endereços pendentes
@@ -92,6 +97,7 @@ O projeto segue **Clean Architecture**. As dependências apontam sempre para den
 Toda entidade operacional (`Ticket`, `Technician`, `Team`, `Client`, `Integration`) possui `OrganizationId`.
 
 ### Regra fundamental
+
 **Nunca** filtre manualmente por `OrganizationId` nas queries. O `ServiZoneDbContext` aplica um **Global Query Filter** em todas as entidades multi-tenant:
 
 ```csharp
@@ -106,17 +112,20 @@ O `OrganizationId` é extraído do JWT pelo `TenantMiddleware` e disponibilizado
 ## 5. Autenticação
 
 ### API Interna (`/api/v1/`)
+
 - **JWT Bearer Token** via `System.IdentityModel.Tokens.Jwt`
 - Header: `Authorization: Bearer <token>`
 - JWT contém: `sub` (userId), `org` (organizationId), `role` (perfil), `iat`, `exp`
 - Refresh token armazenado no Redis com TTL de 30 dias
 
 ### API Externa (`/api/ext/v1/`)
+
 - **API Key** via header `X-Api-Key`
 - Lookup no banco: hash da chave → `integration_credential` → `organization_id`
 - Resultado cacheado no Redis por 5 minutos
 
 ### Perfis (RBAC)
+
 - `Gestor` ⊃ `Supervisor` ⊃ `Operador` ⊃ `Técnico`
 - Chamadas via API Key representam o perfil `Sistema`
 
@@ -127,6 +136,7 @@ O `OrganizationId` é extraído do JWT pelo `TenantMiddleware` e disponibilizado
 **Sempre** use `Flavio.Santos.NetCore.ApiResponse` para retornar respostas dos Controllers. Nunca retorne objetos brutos diretamente.
 
 Envelope de sucesso paginado:
+
 ```json
 {
   "data": [ ... ],
@@ -135,6 +145,7 @@ Envelope de sucesso paginado:
 ```
 
 Envelope de erro:
+
 ```json
 {
   "error": {
@@ -146,6 +157,7 @@ Envelope de erro:
 ```
 
 Códigos HTTP padrão:
+
 - `200` — recurso retornado
 - `201` — recurso criado
 - `204` — ação sem retorno de corpo
@@ -162,9 +174,11 @@ Códigos HTTP padrão:
 ## 7. Domínio — Entidades Principais
 
 ### Ticket (entidade central)
+
 Unidade de trabalho operacional. Toda demanda, independente da origem, é representada como um Ticket.
 
 **Estados do ciclo de vida:**
+
 ```
 Recebido → Aberto → AguardandoDistribuicao → DisponibilizadoAoTecnico
     → Aceito → EmDeslocamento → EmAtendimento → Concluido
@@ -175,24 +189,31 @@ Recebido → Aberto → AguardandoDistribuicao → DisponibilizadoAoTecnico
 Transições de status são controladas pela própria entidade `Ticket`. Nenhum código externo altera o status diretamente — use os métodos de domínio.
 
 ### Organization
+
 Tenant da plataforma. Delimita o isolamento de todos os dados. Toda entidade operacional pertence a exatamente uma `Organization`.
 
 ### Technician
+
 Profissional que executa Tickets em campo. Possui disponibilidade, localização atual (temporal), especialidades e área de atuação.
 
 ### Team
+
 Conjunto de Técnicos que opera de forma coordenada. Um Ticket pode ser atribuído a uma Equipe.
 
 ### Client
+
 Destinatário do serviço. Pertence a uma Organization. Relacionado ao Local de Atendimento do Ticket.
 
 ### Attendance
+
 Representa a execução prática de um Ticket. É um Agregado separado do Ticket para permitir evoluções futuras (múltiplas visitas, atendimentos parciais).
 
 ### Integration
+
 Configuração de comunicação entre uma Organization e um sistema externo. Possui API Key para autenticação na API Externa.
 
-### HistoryRecord
+### TicketHistory
+
 Registro imutável de eventos relevantes do ciclo de vida do Ticket. Nunca altere um registro — crie um novo.
 
 ---
@@ -235,6 +256,7 @@ Processamento assíncrono de webhooks, push e notificações:
 ## 11. Regras de Código
 
 ### O que SEMPRE fazer
+
 - Defina endpoints com **Minimal API** (`MapGroup`/`MapGet`/`MapPost`/...), organizados por feature em classes de extensão de `IEndpointRouteBuilder`, na pasta/namespace `Endpoints`
 - DTOs (Request/Response) ficam em `ServiZone.Application`, na pasta/namespace `Dtos` (nunca `DTOs`) — segue a convenção .NET de PascalCase para siglas com 3+ letras (ex.: `Dto`, `Uri`, `Xml`)
 - Hash de senha com `BCrypt.Net-Next` na camada Application
@@ -244,6 +266,7 @@ Processamento assíncrono de webhooks, push e notificações:
 - Túnel SSH (`SshTunnelService`) registrado **somente** em Development
 
 ### O que NUNCA fazer
+
 - Não use Controllers baseados em `ControllerBase`/MVC — a API é implementada inteiramente com Minimal API
 - Não filtre manualmente por `OrganizationId` em queries
 - Não receba `OrganizationId` em payloads de request
@@ -262,6 +285,7 @@ Processamento assíncrono de webhooks, push e notificações:
 **Development**: túnel SSH automático via `SshTunnelService`. Connection string aponta para `localhost:15432` (porta local do túnel).
 
 **Production**: sem túnel. Configuração via variáveis de ambiente injetadas pelo k3s:
+
 - `DATABASE__CONNECTIONSTRING`
 - `REDIS__CONNECTIONSTRING`
 - `JWT__SECRET`
@@ -274,17 +298,18 @@ Processamento assíncrono de webhooks, push e notificações:
 A documentação completa está disponível **localmente** no repositório `servizone`, que deve estar clonado em `C:\workarea\projects\servizone`.
 
 > **Pré-requisito**: clone o repositório de documentação antes de iniciar o desenvolvimento:
+>
 > ```bash
 > cd C:\workarea\projects
 > git clone https://github.com/flavio-santos-ti/servizone.git
 > ```
 
-| Documento | Caminho local |
-|---|---|
-| Visão do Produto | `C:\workarea\projects\servizone\docs\01-visao-do-produto\servizone-01-visao-do-produto.md` |
-| Modelo de Domínio | `C:\workarea\projects\servizone\docs\03-modelo-de-dominio\servizone-03-modelo-de-dominio.md` |
+| Documento             | Caminho local                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| Visão do Produto      | `C:\workarea\projects\servizone\docs\01-visao-do-produto\servizone-01-visao-do-produto.md`              |
+| Modelo de Domínio     | `C:\workarea\projects\servizone\docs\03-modelo-de-dominio\servizone-03-modelo-de-dominio.md`            |
 | Requisitos Funcionais | `C:\workarea\projects\servizone\docs\04-requisitos-funcionais\servizone-04-00-requisitos-funcionais.md` |
-| Regras de Negócio | `C:\workarea\projects\servizone\docs\05-regras-de-negocio\servizone-05-00-regras-de-negocio.md` |
-| Fluxos de Negócio | `C:\workarea\projects\servizone\docs\06-fluxos-de-negocio\servizone-06-00-fluxos-de-negocio.md` |
-| Arquitetura Backend | `C:\workarea\projects\servizone\docs\08-arquitetura\servizone-08-01-arquitetura-backend.md` |
-| Contratos de API | `C:\workarea\projects\servizone\docs\09-contratos-de-api\servizone-09-00-contratos-de-api.md` |
+| Regras de Negócio     | `C:\workarea\projects\servizone\docs\05-regras-de-negocio\servizone-05-00-regras-de-negocio.md`         |
+| Fluxos de Negócio     | `C:\workarea\projects\servizone\docs\06-fluxos-de-negocio\servizone-06-00-fluxos-de-negocio.md`         |
+| Arquitetura Backend   | `C:\workarea\projects\servizone\docs\08-arquitetura\servizone-08-01-arquitetura-backend.md`             |
+| Contratos de API      | `C:\workarea\projects\servizone\docs\09-contratos-de-api\servizone-09-00-contratos-de-api.md`           |
