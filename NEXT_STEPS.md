@@ -101,7 +101,7 @@ Para cada entidade, criar:
 
 - [ ] `JwtOptions` (POCO de configuração)
 - [ ] `JwtService` (geração e validação de tokens)
-- [ ] `AuthController` (login, refresh token)
+- [ ] `AuthEndpoints` (login, refresh token)
 - [ ] Configurar middleware JWT Bearer no `Program.cs`
 
 **Autenticação API Key (sistemas externos):**
@@ -113,33 +113,33 @@ Para cada entidade, criar:
 **RBAC:**
 
 - [ ] Policies de autorização (Gestor, Supervisor, Operador, Técnico)
-- [ ] Atributos de autorização nos Controllers
+- [ ] `.RequireAuthorization(...)` nos Endpoints
 
 ### 5. Implementar TenantMiddleware
 
 Criar middleware para extração do `OrganizationId` do JWT e injeção no contexto:
 
 - [ ] `TenantMiddleware.cs`
-- [ ] Registrar no pipeline antes dos Controllers
+- [ ] Registrar no pipeline antes dos Endpoints
 - [ ] Validação de token contendo claim "org"
 
-### 6. Implementar Controllers
+### 6. Implementar Endpoints
 
-Criar controllers RESTful para cada recurso:
+Criar Endpoints (Minimal API) para cada recurso, na pasta `Endpoints/`, seguindo o padrão `Map*Endpoints(this IEndpointRouteBuilder app)` + `.WithTags("Xxx")`:
 
 **API Interna (`/api/v1/`):**
 
-- [ ] `AuthController` (login, refresh)
-- [ ] `OrganizationsController`
-- [ ] `TicketsController`
-- [ ] `TechniciansController`
-- [ ] `TeamsController`
-- [ ] `ClientsController`
+- [ ] `AuthEndpoints` (login, refresh)
+- [ ] `OrganizationEndpoints`
+- [ ] `TicketEndpoints`
+- [ ] `TechnicianEndpoints`
+- [ ] `TeamEndpoints`
+- [ ] `ClientEndpoints`
 
 **API Externa (`/api/ext/v1/`):**
 
-- [ ] `ExternalTicketsController` (criar/atualizar tickets via integração)
-- [ ] `ExternalWebhooksController` (receber eventos de sistemas externos)
+- [ ] `ExternalTicketEndpoints` (criar/atualizar tickets via integração)
+- [ ] `ExternalWebhookEndpoints` (receber eventos de sistemas externos)
 
 ### 7. Implementar Serviços Externos
 
@@ -224,14 +224,14 @@ Criar controllers RESTful para cada recurso:
 
 **Testes de Integração:**
 
-- [ ] Testes de controllers
+- [ ] Testes de endpoints
 - [ ] Testes de repositórios com banco real (TestContainers)
 - [ ] Testes de fluxo completo (E2E)
 
 ### 15. Documentação da API
 
 - [ ] Configurar Swagger/OpenAPI com exemplos de requisição/resposta
-- [ ] Adicionar comentários XML nos controllers
+- [ ] Adicionar `.WithSummary()`/`.WithDescription()` nos Endpoints
 - [ ] Documentar autenticação JWT e API Key
 - [ ] Documentar códigos de erro padrão
 
@@ -244,13 +244,13 @@ Criar controllers RESTful para cada recurso:
 1. Completar entidades principais (Organization, User, Ticket)
 2. Implementar autenticação JWT
 3. Implementar TenantMiddleware
-4. Criar OrganizationsController e AuthController básicos
+4. Criar OrganizationEndpoints e AuthEndpoints básicos
 5. Implementar exception handling global
 
 ### Sprint 2: Tickets (funcionalidade central)
 
 1. Completar entidade Ticket com value objects
-2. Implementar TicketsController
+2. Implementar TicketEndpoints
 3. Criar use cases: CreateTicket, GetTicket, ListTickets
 4. Implementar validações de negócio
 5. Testes de unidade de Ticket
@@ -258,7 +258,7 @@ Criar controllers RESTful para cada recurso:
 ### Sprint 3: Técnicos e Equipes
 
 1. Implementar entidades Technician, Team, TechnicianProfile
-2. Implementar TechniciansController e TeamsController
+2. Implementar TechnicianEndpoints e TeamEndpoints
 3. Criar use cases de gestão de técnicos
 4. Implementar geocodificação (GoogleGeocoder)
 
